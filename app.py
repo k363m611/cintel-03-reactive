@@ -7,7 +7,7 @@ import seaborn as sns
 
 penguins = load_penguins()
 
-ui.page_opts(title="Trent's Penguin Data", fillable=True)
+ui.page_opts(title="Katie's Penguin Data", fillable=True)
 
 with ui.sidebar(
     position="right",
@@ -23,7 +23,7 @@ with ui.sidebar(
     ui.input_slider("seaborn_bin_count", "Seaborn Bins", 5, 50, 25)
     ui.input_checkbox_group("selected_species_list", "Selected Species", ["Adelie", "Gentoo", "Chinstrap"], selected=["Adelie", "Chinstrap"], inline=False)
     ui.hr()
-    ui.a("Trent's GitHub Repo", "https://github.com/trentrueckert/cintel-02-data", target= "_blank")
+    ui.a("Katie's GitHub Repo", "https://github.com/k363m611/cintel-02-data", target= "_blank")
     
 
 # Plotly Histogram showing all species
