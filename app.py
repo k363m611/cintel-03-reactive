@@ -74,7 +74,7 @@ with ui.sidebar(position="right", open="open", bg="#d5d8dc"):
     #   pass in two arguments:
     ui.a(
         "My GitHub Repository",
-        href="https://github.com/james-0177/cintel-03-reactive/blob/main/app.py",
+        href="https://github.com/james-0177/cintel-02-data/tree/main",
         target="_blank")
 
 # Main Content
