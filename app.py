@@ -1,118 +1,146 @@
+
 import plotly.express as px
-import seaborn as sns
-from shiny.express import render, input, ui
+from shiny.express import input, ui, render
 from shinywidgets import render_plotly
-import palmerpenguins # This package provides the Palmer Penguins dataset
+from palmerpenguins import load_penguins
+from shinywidgets import output_widget, render_widget, render_plotly
+import seaborn as sns
+from shiny import render 
+import palmerpenguins
+from shiny import reactive
 
-# ----------------------------------------------------
-# Get the Data
-#-----------------------------------------------------
 
-# ALWAYS familiarize yourself with the dataset you are working with first.
-# Column names for the penguins dataset include:
-# - species: penguin species (Chinstrap, Adelie, or Gentoo)
-# - island: island name (Dream, Torgersen, or Biscoe) in the Palmer Archipelago
-# - bill_length_mm: length of the bill in millimeters
-# - bill_depth_mm: depth of the bill in millimeters
-# - flipper_length_mm: length of the flipper in millimeters
-# - body_mass_g: body mass in grams
-# - sex: MALE or FEMALE
-
-# Load the dataset into a pandas DataFrame.
-# Use the built-in function to load the Palmer Penguins dataset
 penguins_df = palmerpenguins.load_penguins()
 
-# -----------------------------------------------------
-# Define User Interface (ui)
-# -----------------------------------------------------
+with ui.layout_columns():
+    with ui.card():
+        "Penguins Data Table"
+        @render.data_frame
+        def penguinstable_df():
+            return render.DataTable(penguins_df, filters=False,selection_mode='row')
+        
 
-ui.page_opts(title="Pinkston's Palmer Penguins PyShiny Plots", fillable=True)
+    with ui.card():
+        "Penguins Data Grid"
+        @render.data_frame
+        def penguinsgrid_df():
+            return render.DataGrid(penguins_df, filters=False, selection_mode="row")
 
-# Add a Shiny UI sidebar for user interaction
-# Use the ui.sidebar() function to create a sidebar
-# Set the open parameter to "open" to make the sidebar open by default
-with ui.sidebar(position="right", open="open", bg="#d5d8dc"):
-    # Use the ui.h2() function to add a 2nd level header to the sidebar
+
+with ui.sidebar(open="open"):
     ui.h2("Sidebar")
+    ui.input_selectize("selected_attribute",
+                       "Penguin Metric",
+                       ["bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g"])
 
-    # Use ui.input_selectize() to create a dropdown input to choose a column
-    # pass in three arguments:
-    ui.input_selectize(
-        "selected_attribute",
-        "Select an Attribute",
-        ["bill_length_mm", "bill_depth_mm", "flipper_length_mm", "body_mass_g"])
-
-    # Use ui.input_numeric() to create a numeric input for the number of Plotly histogram bins
-    #   pass in two arguments:
     ui.input_numeric(
         "plotly_bin_count",
-        "# of Plotly Histogram Bins",
-        value=10)
+        "Plotly Number of Bins",
+        20
+    )
 
-    # Use ui.input_slider() to create a slider input for the number of Seaborn bins
-    #   pass in four arguments:
     ui.input_slider(
         "seaborn_bin_count",
-        "# of Seaborn Bins",
-        min=1,
-        max=100,
-        value=10)
+        "Seaborn Number of Bins",
+        1,20,10
+    )
 
-    # Use ui.input_checkbox_group() to create a checkbox group input to filter the species
-    #   pass in five arguments:
     ui.input_checkbox_group(
         "selected_species_list",
-        "Filter by Species",
-        ["Adelie", "Gentoo", "Chinstrap"],
-        selected=["Adelie", "Gentoo", "Chinstrap"],
-        inline=True)
+        "Species",
+        ["Adelie","Gentoo","Chinstrap"],
+        selected=["Adelie","Gentoo","Chinstrap"],
+        inline=False
+    )
 
-    # Use ui.hr() to add a horizontal rule to the sidebar
     ui.hr()
 
-    # Use ui.a() to add a hyperlink to the sidebar
-    #   pass in two arguments:
     ui.a(
-        "My GitHub Repository",
-        href="https://github.com/james-0177/cintel-02-data/tree/main",
-        target="_blank")
+        "GitHub",
+        href= "https://github.com/Queensdelight/cintel-02-data/tree/main",
+        target="_blank"
+    )
 
-# Main Content
-
-# Display Data Table and Data Grid
+ui.page_opts(title="Bukola's Penguin Data Practice", fillable=True)
 with ui.layout_columns():
-    with ui.card(full_screen=True):
-        ui.card_header("Data Table of Penguin Species")
-        @render.data_frame
-        def table():
-            return render.DataTable(data=penguins_df)
 
-    with ui.card(full_screen=True):
-        ui.card_header("Data Grid of Penguin Species")
-        @render.data_frame
-        def grid():
-             return render.DataGrid(data=penguins_df)
+    @render_plotly
+    def plot1():
 
-# Display Plotly and Seaborn Histograms
-with ui.layout_columns():
-    with ui.card(full_screen=True):
-        ui.card_header("Plotly Histogram: Distribution of Penguins by Body Mass")
-        @render_plotly
-        def plot1():
-            return px.histogram(penguins_df, x="body_mass_g", color="species", nbins=input.plotly_bin_count())
-            
-    with ui.card(full_screen=True):
-        ui.card_header("Seaborn Histogram: Distribution of Penguins by Flipper Length")
-        @render.plot
-        def plot2():
-            return sns.histplot(data=penguins_df, x="flipper_length_mm", hue="species", bins=input.seaborn_bin_count())
+        fig = px.histogram(
+            penguins_df,
+            x="bill_length_mm",
+            title="Penguins Bill Length Histogram",
+            color_discrete_sequence=["orange"],
+        )
+        fig.update_traces(marker_line_color="black", marker_line_width=2)
+        return fig
 
-# Display Plotly Scatterplot
+    @render_plotly
+   
+    def plot2():
+        selected_attribute = input.selected_attribute()
+        bin_count = input.plotly_bin_count()
+        
+        fig = px.histogram(
+            penguins_df,
+            x=selected_attribute,
+            nbins=bin_count,
+            title=f"Penguins {selected_attribute} Histogram",
+            color_discrete_sequence=["black"], 
+        )
+        fig.update_traces(marker_line_color="white", marker_line_width=2)
+        return fig
+
 with ui.card(full_screen=True):
+
     ui.card_header("Plotly Scatterplot: Species")
     @render_plotly
     def plotly_scatterplot():
-        return px.scatter(data_frame=penguins_df, x="bill_length_mm", y="body_mass_g", color="species", hover_name="island", symbol="sex")
+        filtered_penguins = penguins_df[
+                penguins_df["species"].isin(input.selected_species_list())
+            ]
+        fig = px.scatter(
+                filtered_penguins,
+                x="body_mass_g",
+                y="flipper_length_mm",
+                color="species",
+                title="Penguins Scatterplot: Body Mass vs. Flipper Length",
+                labels={
+                    "body_mass_g": "Body Mass (g)",
+                    "flipper_length_mm": "Flipper Length (mm)",
+                },
+            )
+        return fig
+    
+    @render_plotly
+    def density_plot():
+        filtered_penguins = penguins_df[
+            penguins_df["species"].isin(input.selected_species_list())
+        ]
+        fig = px.density_contour(
+            filtered_penguins,
+            
+            x="bill_length_mm",
+            y="bill_depth_mm",
+            color="species",
+            title="Density Plot: Bill Length vs Bill Depth by Species",
+            labels={
+                "bill_length_mm": "Bill Length (mm)",
+                "bill_depth_mm": "Bill Depth (mm)"
+            }
+        )
+        return fig
+
+with ui.layout_columns():
+    with ui.card():
+        @render.plot(alt="Seaborn Histogram")
+        def plot():
+            ax=sns.histplot(data=penguins_df,x="flipper_length_mm",bins=input.seaborn_bin_count())
+            ax.set_title("Seaborn: Palmer Penguins")
+            ax.set_xlabel("flipper_length_mm")
+            ax.set_ylabel("Count")
+            return ax
 
 # --------------------------------------------------------
 # Reactive calculations and effects
