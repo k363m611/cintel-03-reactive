@@ -67,7 +67,7 @@ with ui.sidebar(open="open"):
     ui.hr()
     ui.a(
         "Github",
-        href="https://github.com/DarkwingDuff/cintel-02-data/tree/main",
+        href="https://github.com/k363m611/cintel-02-data/tree/main",
         target="_blank",
     )
 
